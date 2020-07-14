@@ -1,23 +1,18 @@
 package main
 
 import (
-	"github.com/angrypie/shiva-units/httpsrv"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
-	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 )
 
 var game *Game
 
 func main() {
-	config := httpsrv.Config{Addr: ":9090"}
-	server := httpsrv.New(config)
-
-	log.Println("Server started")
-	server.Start(nil)
-	server.Echo.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+	server := echo.New()
+	server.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{
 			"http://localhost:3000",
 			"http://localhost",
@@ -25,12 +20,11 @@ func main() {
 		},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType},
 	}))
-
-	server.Echo.POST("/game/:cols/:rows", createGame)
-	server.Echo.POST("/state", getState)
-	server.Echo.POST("/state/:cell", invertCellState)
-	server.Echo.POST("/step", nextStep)
-	<-make(chan bool)
+	server.POST("/game/:cols/:rows", createGame)
+	server.POST("/state", getState)
+	server.POST("/state/:cell", invertCellState)
+	server.POST("/step", nextStep)
+	server.Logger.Fatal(server.Start(":9090"))
 
 }
 

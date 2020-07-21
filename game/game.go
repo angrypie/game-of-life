@@ -30,7 +30,7 @@ func (game *Game) InvertCell(n int) bool {
 
 func (game *Game) ProcessNextStep() {
 	copy(game.nextState, game.State)
-	game.AsyncCompute(2)
+	game.AsyncCompute(1)
 	copy(game.State, game.nextState)
 }
 
@@ -63,7 +63,6 @@ func (game *Game) checkCell(i int) {
 	state := game.State
 	n := game.n
 	c := game.Columns
-	r := game.Rows
 
 	helper := func(cond bool, offset int, state []int) int {
 		if cond {
@@ -72,15 +71,20 @@ func (game *Game) checkCell(i int) {
 		return 0
 	}
 
+	top := i-c >= 0
+	bottom := i+c < n
+	right := (i+1)%c != 0
+	left := i%c != 0
+
 	sum := 0
-	sum += helper(i-r >= 0, i-r, state)
-	sum += helper(i+r < n, i+r, state)
-	sum += helper(i+1 < n && i%c != c-1, i+1, state)
-	sum += helper(i-1 >= 0 && i%c != 0, i-1, state)
-	sum += helper(i-r >= 0 && i-1 >= 0 && i%c != 0, i-1-r, state)
-	sum += helper(i-r >= 0 && i+1 < n && i%c != c-1, i+1-r, state)
-	sum += helper(i+r < n && i-1 >= 0 && i%c != 0, i+r-1, state)
-	sum += helper(i+r < n && i+1 < n && i%c != c-1, i+r+1, state)
+	sum += helper(top, i-c, state)               //top
+	sum += helper(bottom, i+c, state)            //bottom
+	sum += helper(right, i+1, state)             //right
+	sum += helper(left, i-1, state)              //left
+	sum += helper(top && left, i-1-c, state)     //top-left
+	sum += helper(top && right, i+1-c, state)    //top-right
+	sum += helper(bottom && left, i+c-1, state)  //bottom-left
+	sum += helper(bottom && right, i+c+1, state) //bottom-right
 
 	if sum == 3 && state[i] == 0 {
 		game.nextState[i] = 1
